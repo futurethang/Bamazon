@@ -16,6 +16,20 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
+var productSelectionID;
+var productSelectionQty;
+
+var enterUnits = {
+  name: "enter_units",
+  type: "input",
+  message: "Enter the number of units you would like to purchase",
+  validate: function validateInteger(enter_units) { // Must add check for existing QTY in following Then
+    if (isNaN(enter_units)) {
+      console.log("Please enter an integer for quantity")
+    } else { return true };
+  }
+}
+
 var connection = mysql.createConnection({
   host: "localhost",
 
@@ -30,13 +44,38 @@ var connection = mysql.createConnection({
   database: "bamazon_db"
 });
 
-var toTitleCase = function (str) {
-	str = str.toLowerCase().split(' ');
-	for (var i = 0; i < str.length; i++) {
-		str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
-	}
-	return str.join(' ');
+function proceedTransaction(inputs) {
+  if (inputs.enter_id !== null) { productSelectionID = inputs.enter_id; }
+  productSelectionQty = parseInt(inputs.enter_units);
+  quantityCheck(productSelectionID, productSelectionQty);
+}
+
+function toTitleCase(str) {
+  str = str.toLowerCase().split(' ');
+  for (var i = 0; i < str.length; i++) {
+    str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+  }
+  return str.join(' ');
 };
+
+function quantityCheck(id, qty) {
+  console.log("SELECT stock_quantity FROM products WHERE id=" + id);
+  connection.query("SELECT stock_quantity FROM products WHERE id=" + id, function (err, res) {
+    if (err) throw err;
+    if (res[0].stock_quantity < qty) {
+      console.log("There are not enough in stock to fill your order. Please make another selection.")
+      // take back to select another quantity
+      inquirer.prompt([
+        enterUnits
+      ]).then(function (inputs) {
+        proceedTransaction(inputs);
+      })
+    } else { console.log(res) }
+    // continue with the purchase
+    console.log(res[0]['stock_quantity'])
+    // connection.end();
+  })
+}
 
 function readProducts() {
   console.log("Selecting all products...\n");
@@ -45,16 +84,30 @@ function readProducts() {
     res.forEach((item) => {
       console.log(
         "\n-------------\n" +
-        toTitleCase(item.product_name) + " - Product ID: " + item.id + "\n" + 
-        "Department: " + toTitleCase(item.department_name) + "\n" + 
-        "Price: $" + item.price + "\n" + 
-        "Qty. In Stock: " + item.stock_quantity + 
+        toTitleCase(item.product_name) + " - Product ID: " + item.id + "\n" +
+        "Department: " + toTitleCase(item.department_name) + "\n" +
+        "Price: $" + item.price + "\n" +
+        "Qty. In Stock: " + item.stock_quantity +
         "\n--------------"
       );
     })
-    // Log all results of the SELECT statement
-    connection.end();
+    // connection.end();
   });
 }
 
+///// INQUIRER FUNCTIONS
+function purchaseInquiry() {
+  inquirer.prompt([
+    {
+      name: "enter_id",
+      type: "input",
+      message: "Enter the ID of the item you would like to purchase", // Must add validate for existing ID based on DB contents
+    },
+    enterUnits,
+  ]).then(function (inputs) {
+    proceedTransaction(inputs);
+  })
+}
+
 readProducts();
+purchaseInquiry();
