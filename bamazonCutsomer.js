@@ -44,9 +44,9 @@ var connection = mysql.createConnection({
   database: "bamazon_db"
 });
 
-function proceedTransaction(inputs) {
-  if (inputs.enter_id !== null) { productSelectionID = inputs.enter_id; }
-  productSelectionQty = parseInt(inputs.enter_units);
+function proceedTransaction(id, qty) {
+  if (id !== null) { productSelectionID = id; }
+  productSelectionQty = qty;
   quantityCheck(productSelectionID, productSelectionQty);
 }
 
@@ -64,15 +64,16 @@ function quantityCheck(id, qty) {
     if (err) throw err;
     if (res[0].stock_quantity < qty) {
       console.log("There are not enough in stock to fill your order. Please make another selection.")
-      // take back to select another quantity
-      inquirer.prompt([
-        enterUnits
+      inquirer.prompt([ // take back to select another quantity
+        enterUnits // only asking for update to QTY, ID is held in global property
       ]).then(function (inputs) {
-        proceedTransaction(inputs);
+        productSelectionQty = inputs.enter_units; // Update global QTY variable
+        console.log("ID: " + productSelectionID + " QTY: " + productSelectionQty)
+        proceedTransaction(productSelectionID, productSelectionQty);
       })
     } else { console.log(res) }
     // continue with the purchase
-    console.log(res[0]['stock_quantity'])
+    // console.log(res[0]['stock_quantity'])
     // connection.end();
   })
 }
@@ -105,7 +106,9 @@ function purchaseInquiry() {
     },
     enterUnits,
   ]).then(function (inputs) {
-    proceedTransaction(inputs);
+    productSelectionID = inputs.enter_id;
+    productSelectionQty = parseInt(inputs.enter_units);
+    proceedTransaction(productSelectionID, productSelectionQty);
   })
 }
 
