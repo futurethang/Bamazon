@@ -60,7 +60,7 @@ function addToInventory() {
       productSelectionQty = parseInt(inputs.enter_units);
       var newQuantity = productSelectionQty + existingQuantity;
       updateProduct(productSelectionID, newQuantity);
-      managerInquiry();
+      // managerInquiry();
     })
 
   })
@@ -68,13 +68,61 @@ function addToInventory() {
 
 function addNewProduct() {
   //   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
+  inquirer.prompt([
+    {
+      name: "new_product",
+      type: "input",
+      message: "What is the new product named?"
+    },
+    {
+      name: "department",
+      type: "input",
+      message: "What is the new product's department?"
+    },
+    {
+      name: "price",
+      type: "input",
+      message: "What is the new product's price?",
+      validate: function validateInteger(price) { // Must add check for existing QTY in following Then
+        if (isNaN(price)) {
+          console.log("Please enter an integer for quantity")
+        } else { return true };
+      }
+    },
+    {
+      name: "starting_quantity",
+      type: "input",
+      message: "How many are available?",
+      validate: function validateInteger(starting_quantity) { // Must add check for existing QTY in following Then
+        if (isNaN(starting_quantity)) {
+          console.log("Please enter an integer for quantity")
+        } else { return true };
+      }
+    }
+  ]).then(function (inputs) {
+    var newProduct = inputs.new_product;
+    var price = inputs.price;
+    var department = inputs.department_name;
+    var starting_quantity = inputs.starting_quantity;
+    connection.query(
+      "INSERT INTO products SET ?",
+      {
+        product_name: newProduct,
+        department_name: department,
+        price: price,
+        stock_quantity: starting_quantity,
+      },
+      function (err, res) {
+        console.log(res.affectedRows + " product inserted!\n");
+    })
+  })
+  // managerInquiry();
 };
 
 function viewProductsForSale() {
   //   * If a manager selects `View Products for Sale`, the app should list every available item: the item IDs, names, prices, and quantities.
   readProducts();
 };
-
 
 var enterUnits = { // Inquirer object to get a Qty number
   name: "enter_units",
@@ -119,6 +167,7 @@ function readProducts() { // INPUT: NONE  -  OUTPUT: ALL PRODUCT TABLE CONTENTS
   connection.query("SELECT * FROM products", function (err, res) {
     if (err) throw err;
     printProduct(res);
+    managerInquiry();
   });
 };
 
@@ -138,7 +187,7 @@ function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG 
 function updateProduct(id, qty) {
   console.log("update fires -  id: " + id + "  qty: " + qty);
 
-  var query = connection.query(
+  connection.query(
     "UPDATE products SET ? WHERE ?",
     [
       {
@@ -149,13 +198,14 @@ function updateProduct(id, qty) {
       }
     ],
     function (err, res) {
-      // console.log(res.affectedRows + " products updated!\n");
+      console.log(res.affectedRows + " products updated!\n");
     }
   );
   // CALCULATE TOTAL COST OF TRANSACTION
   connection.query("SELECT * FROM products WHERE id=" + id, function (err, res) {
     if (err) throw err;
     printProduct(res);
+    managerInquiry();
   });
 };
 
