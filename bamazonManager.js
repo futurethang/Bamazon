@@ -17,6 +17,7 @@ var productSelectionQty;
 function viewLowInventory() {
   //   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
   connection.query("SELECT * FROM products WHERE stock_quantity<5", function (err, res) {
+    if (res.length === 0) { console.log(colors.info("All products are well stocked!")) }
     printProduct(res);
     managerInquiry();
   })
@@ -45,8 +46,7 @@ function addToInventory() {
   })
 };
 
-function addNewProduct() {
-  //   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
+function addNewProduct() { //   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
   inquirer.prompt([
     {
       name: "new_product",
@@ -79,23 +79,20 @@ function addNewProduct() {
       }
     }
   ]).then(function (inputs) {
-    var newProduct = inputs.new_product;
-    var price = inputs.price;
-    var department = inputs.department_name;
-    var starting_quantity = inputs.starting_quantity;
     connection.query(
-      "INSERT INTO products SET ?",
-      {
-        product_name: newProduct,
-        department_name: department,
-        price: price,
-        stock_quantity: starting_quantity,
-      },
+    "INSERT INTO products SET ?",
+        {
+          product_name: inputs.new_product,
+          department_name: inputs.department,
+          price: inputs.price,
+          stock_quantity: inputs.starting_quantity
+        },
       function (err, res) {
+        if (err) throw err;
         console.log(res.affectedRows + " product inserted!\n");
-    })
+      })
+  managerInquiry();  
   })
-  // managerInquiry();
 };
 
 function viewProductsForSale() {
@@ -220,6 +217,7 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
 
 ///// INQUIRER FUNCTIONS
 function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
+  console.log("\n----------------------------------------\n");
   inquirer.prompt([
     {
       type: "list",
@@ -254,8 +252,6 @@ function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SE
 
 
 managerInquiry();
-
 // FEATURE NEEDS: FAIL MESSAGE IF NO PRODUCTS ARE < 5 QTY
-// !!! FUNCTIONAL INSERT INTO FOR NEW PRODUCT
 // ANY IMPROVEMENTS TO UX?
 
