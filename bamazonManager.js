@@ -37,6 +37,10 @@ var productSelectionQty;
 
 function viewLowInventory() {
   //   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
+  connection.query("SELECT * FROM products WHERE stock_quantity<5", function (err, res) {
+    printProduct(res);
+    managerInquiry();
+  })
 };
 
 function addToInventory() {
@@ -56,6 +60,7 @@ function addToInventory() {
       productSelectionQty = parseInt(inputs.enter_units);
       var newQuantity = productSelectionQty + existingQuantity;
       updateProduct(productSelectionID, newQuantity);
+      managerInquiry();
     })
 
   })
