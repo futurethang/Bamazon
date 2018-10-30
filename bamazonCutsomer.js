@@ -45,14 +45,14 @@ function proceedTransaction(id, qty) { // INPUTS: ID AND QTY  -  OUTPUT: REASSIG
   if (id !== null) { productSelectionID = id; }
   productSelectionQty = qty;
   quantityCheck(productSelectionID, productSelectionQty);
-}
+};
 
 function readProducts() { // INPUT: NONE  -  OUTPUT: ALL PRODUCT TABLE CONTENTS
   connection.query("SELECT * FROM products", function (err, res) {
     if (err) throw err;
     printProduct(res);
   });
-}
+};
 
 function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG OF ITEM DETAILS
   res.forEach((item) => {
@@ -67,13 +67,37 @@ function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG 
   })
 };
 
-function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QTY OR CONTINUE TRANSACTION
+function updateProduct(id, qty) {
+  var query = connection.query(
+    "UPDATE products SET ? WHERE ?",
+    [
+      {
+        stock_quantity: qty
+      },
+      {
+        id: id
+      }
+    ],
+    function (err, res) {
+      // console.log(res.affectedRows + " products updated!\n");
+    }
+  );
+  // CALCULATE TOTAL COST OF TRANSACTION
   connection.query("SELECT * FROM products WHERE id=" + id, function (err, res) {
     if (err) throw err;
     printProduct(res);
-    if (res[0].stock_quantity < qty) {
+  });
+};
+
+function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QTY OR CONTINUE TRANSACTION
+  connection.query("SELECT * FROM products WHERE id=" + id, function (err, res) {
+    if (err) throw err;
+    var itemQuantity = res[0].stock_quantity;
+    var itemPrice = res[0].price;
+    printProduct(res);
+    if (itemQuantity < qty) {
       console.log("\nThere are not enough in stock to fill your order.\n" +
-        "There are " + res[0].stock_quantity + " left in stock." +
+        "There are " + itemQuantity + " left in stock." +
         "\nPlease make update your quantity.\n");
       inquirer.prompt([ // take back to select another quantity
         enterUnits // only asking for update to QTY, ID is held in global property
@@ -83,10 +107,15 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
         proceedTransaction(productSelectionID, productSelectionQty);
       })
     } else { // continue with the purchase
-      console.log(res)
+      var newQuantity = itemQuantity - qty;
+      console.log("\nTransaction Total: $" + (qty * itemPrice).toFixed(2));
+      console.log("\n\nUpdated Product Record:")
+      updateProduct(id, newQuantity);
+      // console.log(res)
+
     }
   })
-}
+};
 
 ///// INQUIRER FUNCTIONS
 function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
@@ -102,7 +131,7 @@ function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: S
     productSelectionQty = parseInt(inputs.enter_units);
     proceedTransaction(productSelectionID, productSelectionQty);
   })
-}
+};
 
 readProducts();
 purchaseInquiry();
