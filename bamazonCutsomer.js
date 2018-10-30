@@ -67,22 +67,24 @@ function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG 
       toTitleCase(item.product_name) + " - Product ID: " + item.id + "\n" +
       "Department: " + toTitleCase(item.department_name) + "\n" +
       "Price: $" + item.price + "\n" +
-      "Qty. In Stock: " + item.stock_quantity +
+      "Qty. In Stock: " + item.stock_quantity + "\n" +
+      "Total Product Sales: " + item.product_sales + 
       "\n--------------"
     ));
   })
 };
 
-function updateProduct(id, qty) {
+function updateProduct(id, qty, tranTotal) {
   var query = connection.query(
     "UPDATE products SET ? WHERE ?",
     [
       {
-        stock_quantity: qty
+        stock_quantity: qty,
+        product_sales: tranTotal
       },
       {
         id: id
-      }
+      },
     ],
     function (err, res) {
       // console.log(res.affectedRows + " products updated!\n");
@@ -92,6 +94,7 @@ function updateProduct(id, qty) {
   connection.query("SELECT * FROM products WHERE id=" + id, function (err, res) {
     if (err) throw err;
     printProduct(res);
+    purchaseInquiry();
   });
 };
 
@@ -114,17 +117,17 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
       })
     } else { // continue with the purchase
       var newQuantity = itemQuantity - qty;
-      console.log(colors.total("\nTransaction Total: $" + (qty * itemPrice).toFixed(2)));
+      var transactionTotal = (qty * itemPrice).toFixed(2);
+      console.log(colors.total("\nTransaction Total: $" + transactionTotal));
       console.log(colors.info("\n\nUpdated Product Record:"))
-      updateProduct(id, newQuantity);
-      // console.log(res)
-
+      updateProduct(id, newQuantity, transactionTotal);
     }
   })
 };
 
 ///// INQUIRER FUNCTIONS
 function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
+  readProducts();
   inquirer.prompt([
     {
       name: "enter_id",
@@ -139,5 +142,7 @@ function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: S
   })
 };
 
-readProducts();
 purchaseInquiry();
+
+// Build promise using https://flaviocopes.com/javascript-promises/
+// retunr to menu top UX
