@@ -35,6 +35,11 @@ colors.setTheme({
 var productSelectionID;
 var productSelectionQty;
 
+var viewLowInventory;
+var addToInventory;
+var addNewProduct;
+var viewProductsForSale;
+
 var enterUnits = { // Inquirer object to get a Qty number
   name: "enter_units",
   type: "input",
@@ -145,14 +150,19 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
 };
 
 ///// INQUIRER FUNCTIONS
-function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
+function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
   inquirer.prompt([
     {
-      name: "enter_id",
-      type: "input",
-      message: colors.prompt("Enter the ID of the item you would like to purchase"), // Must add validate for existing ID based on DB contents
-    },
-    enterUnits,
+      type: "list",
+      name: manager_options,
+      options: [
+        "View Products For Sale",
+        "View Low Inventory",
+        "Add To Inventory",
+        "Add New Product"
+      ]
+    }
+    
   ]).then(function (inputs) {
     productSelectionID = inputs.enter_id;
     productSelectionQty = parseInt(inputs.enter_units);
@@ -161,4 +171,4 @@ function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: S
 };
 
 readProducts();
-purchaseInquiry();
+managerInquiry();
