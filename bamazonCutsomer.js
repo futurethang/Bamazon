@@ -4,6 +4,15 @@
 
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var colors = require('colors/safe');
+
+colors.setTheme({
+  inventory: ['yellow'],
+  prompt: ['cyan', 'bold'],
+  alert: ['red', 'bold'],
+  total: ['green', 'bold'],
+  info: ['red']
+});
 
 var productSelectionID;
 var productSelectionQty;
@@ -11,7 +20,7 @@ var productSelectionQty;
 var enterUnits = { // Inquirer object to get a Qty number
   name: "enter_units",
   type: "input",
-  message: "Enter the number of units you would like to purchase",
+  message: colors.prompt("Enter the number of units you would like to purchase"),
   validate: function validateInteger(enter_units) { // Must add check for existing QTY in following Then
     if (isNaN(enter_units)) {
       console.log("Please enter an integer for quantity")
@@ -56,14 +65,14 @@ function readProducts() { // INPUT: NONE  -  OUTPUT: ALL PRODUCT TABLE CONTENTS
 
 function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG OF ITEM DETAILS
   res.forEach((item) => {
-    console.log(
+    console.log(colors.inventory(
       "\n-------------\n" +
       toTitleCase(item.product_name) + " - Product ID: " + item.id + "\n" +
       "Department: " + toTitleCase(item.department_name) + "\n" +
       "Price: $" + item.price + "\n" +
       "Qty. In Stock: " + item.stock_quantity +
       "\n--------------"
-    );
+    ));
   })
 };
 
@@ -96,9 +105,9 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
     var itemPrice = res[0].price;
     printProduct(res);
     if (itemQuantity < qty) {
-      console.log("\nThere are not enough in stock to fill your order.\n" +
+      console.log(colors.alert("\nThere are not enough in stock to fill your order.\n" +
         "There are " + itemQuantity + " left in stock." +
-        "\nPlease make update your quantity.\n");
+        "\nPlease make update your quantity.\n"));
       inquirer.prompt([ // take back to select another quantity
         enterUnits // only asking for update to QTY, ID is held in global property
       ]).then(function (inputs) {
@@ -108,8 +117,8 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
       })
     } else { // continue with the purchase
       var newQuantity = itemQuantity - qty;
-      console.log("\nTransaction Total: $" + (qty * itemPrice).toFixed(2));
-      console.log("\n\nUpdated Product Record:")
+      console.log(colors.total("\nTransaction Total: $" + (qty * itemPrice).toFixed(2)));
+      console.log(colors.info("\n\nUpdated Product Record:"))
       updateProduct(id, newQuantity);
       // console.log(res)
 
@@ -123,7 +132,7 @@ function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: S
     {
       name: "enter_id",
       type: "input",
-      message: "Enter the ID of the item you would like to purchase", // Must add validate for existing ID based on DB contents
+      message: colors.prompt("Enter the ID of the item you would like to purchase"), // Must add validate for existing ID based on DB contents
     },
     enterUnits,
   ]).then(function (inputs) {
