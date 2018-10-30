@@ -5,11 +5,11 @@
 //   * List a set of menu options:
 
 //     * View Products for Sale
-    
+
 //     * View Low Inventory
-    
+
 //     * Add to Inventory
-    
+
 //     * Add New Product
 
 //   * If a manager selects `View Products for Sale`, the app should list every available item: the item IDs, names, prices, and quantities.
@@ -35,15 +35,46 @@ colors.setTheme({
 var productSelectionID;
 var productSelectionQty;
 
-var viewLowInventory;
-var addToInventory;
-var addNewProduct;
-var viewProductsForSale;
+function viewLowInventory() {
+  //   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
+};
+
+function addToInventory() {
+  //   * If a manager selects `Add to Inventory`, your app should display a prompt that will let the manager "add more" of any item currently in the store.
+  inquirer.prompt([
+    {
+      name: "enter_id",
+      type: "input",
+      message: colors.prompt("Enter the ID of the item you would like to update"), // Must add validate for existing ID based on DB contents
+    },
+    enterUnits,
+  ]).then(function (inputs) {
+    var existingQuantity;
+    connection.query("SELECT * FROM products WHERE id=" + inputs.enter_id, function (err, res) {
+      existingQuantity = res[0].stock_quantity;
+      productSelectionID = inputs.enter_id;
+      productSelectionQty = parseInt(inputs.enter_units);
+      var newQuantity = productSelectionQty + existingQuantity;
+      updateProduct(productSelectionID, newQuantity);
+    })
+
+  })
+};
+
+function addNewProduct() {
+  //   * If a manager selects `Add New Product`, it should allow the manager to add a completely new product to the store.
+};
+
+function viewProductsForSale() {
+  //   * If a manager selects `View Products for Sale`, the app should list every available item: the item IDs, names, prices, and quantities.
+  readProducts();
+};
+
 
 var enterUnits = { // Inquirer object to get a Qty number
   name: "enter_units",
   type: "input",
-  message: colors.prompt("Enter the number of units you would like to purchase"),
+  message: colors.prompt("Enter the number of units you would like to add"),
   validate: function validateInteger(enter_units) { // Must add check for existing QTY in following Then
     if (isNaN(enter_units)) {
       console.log("Please enter an integer for quantity")
@@ -100,6 +131,8 @@ function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG 
 };
 
 function updateProduct(id, qty) {
+  console.log("update fires -  id: " + id + "  qty: " + qty);
+
   var query = connection.query(
     "UPDATE products SET ? WHERE ?",
     [
@@ -122,9 +155,11 @@ function updateProduct(id, qty) {
 };
 
 function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QTY OR CONTINUE TRANSACTION
+  // 
   connection.query("SELECT * FROM products WHERE id=" + id, function (err, res) {
     if (err) throw err;
     var itemQuantity = res[0].stock_quantity;
+    var addQuantity = qty;
     var itemPrice = res[0].price;
     printProduct(res);
     if (itemQuantity < qty) {
@@ -154,21 +189,34 @@ function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SE
   inquirer.prompt([
     {
       type: "list",
-      name: manager_options,
-      options: [
+      name: "manager_options",
+      choices: [
         "View Products For Sale",
         "View Low Inventory",
         "Add To Inventory",
         "Add New Product"
       ]
     }
-    
   ]).then(function (inputs) {
-    productSelectionID = inputs.enter_id;
-    productSelectionQty = parseInt(inputs.enter_units);
-    proceedTransaction(productSelectionID, productSelectionQty);
+    console.log(inputs.manager_options);
+    switch (inputs.manager_options) {
+      case "View Products For Sale":
+        viewProductsForSale();
+        break;
+      case "View Low Inventory":
+        viewLowInventory();
+        break;
+      case "Add To Inventory":
+        addToInventory();
+        break;
+      case "Add New Product":
+        addNewProduct();
+        break;
+      default:
+        break;
+    }
   })
 };
 
-readProducts();
+
 managerInquiry();
