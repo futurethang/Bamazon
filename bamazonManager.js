@@ -250,8 +250,7 @@ function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SE
   })
 };
 
-
 managerInquiry();
-// FEATURE NEEDS: FAIL MESSAGE IF NO PRODUCTS ARE < 5 QTY
 // ANY IMPROVEMENTS TO UX?
+// https://www.npmjs.com/package/cli-table
 
