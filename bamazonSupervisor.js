@@ -43,20 +43,13 @@ function toTitleCase(str) { // INPUT: STRING  -  OUTPUT: SAME STRING IN TITLE CA
 
 function printDepartment(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG OF ITEM DETAILS
   var table = new Table({
-    head: ['Department', 'Overhead Costs'],
-    colWidths: [40, 20]
+    head: ['Dept. ID', 'Department', 'Overhead Costs', 'Product Sales', 'Total Profit'],
+    colWidths: [10, 40, 20, 20, 20]
   });
   res.forEach((item) => {
     table.push(
-      [item.department_name, item.overhead_costs]
+      [item.department_id, item.department_name, item.overhead_costs, item.product_sales, item.total_profit]
     )
-    // console.log(colors.inventory(
-
-    //   "\n-------------\n" +
-    //   "Department: " + toTitleCase(item.department_name) + "\n" +
-    //   "Overhead Costs: $" + item.overhead_costs + "\n" +
-    //   "\n--------------"
-    // ));
   })
   console.log(table.toString());
 };
@@ -64,6 +57,7 @@ function printDepartment(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY L
 function viewProductsSalesByDepartment() {
   connection.query("SELECT * FROM departments", function (err, res) {
     if (err) throw err;
+    console.log(res);
     printDepartment(res);
   })
 };
