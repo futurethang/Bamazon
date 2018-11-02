@@ -1,9 +1,10 @@
-
+// REQUIRE NPMS
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var colors = require('colors/safe');
 var Table = require('cli-table');
 
+// SET COLOR THEMES FOR CONSOLE LOGS
 colors.setTheme({
   inventory: ['yellow'],
   prompt: ['cyan', 'bold'],
@@ -12,11 +13,33 @@ colors.setTheme({
   info: ['red']
 });
 
+// DEFINE GLOABAL VARIABLES TO SIMPLIFY SCOPE ISSUES
 var productSelectionID;
 var productSelectionQty;
 
-function viewLowInventory() {
-  //   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
+var connection = mysql.createConnection({
+  host: "localhost",
+
+  // Your port; if not 3306
+  port: 3306,
+
+  // Your username
+  user: "root",
+
+  // Your password
+  password: "",
+  database: "bamazon_db"
+});
+
+function toTitleCase(str) { // INPUT: STRING  -  OUTPUT: SAME STRING IN TITLE CASE
+  str = str.toLowerCase().split(' ');
+  for (var i = 0; i < str.length; i++) {
+    str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+  }
+  return str.join(' ');
+};
+
+function viewLowInventory() { //   * If a manager selects `View Low Inventory`, then it should list all items with an inventory count lower than five.
   connection.query("SELECT * FROM products WHERE stock_quantity<5", function (err, res) {
     if (res.length === 0) { console.log(colors.info("All products are well stocked!")) }
     printProduct(res);
@@ -24,8 +47,7 @@ function viewLowInventory() {
   })
 };
 
-function addToInventory() {
-  //   * If a manager selects `Add to Inventory`, your app should display a prompt that will let the manager "add more" of any item currently in the store.
+function addToInventory() { //   * If a manager selects `Add to Inventory`, your app should display a prompt that will let the manager "add more" of any item currently in the store.
   inquirer.prompt([
     {
       name: "enter_id",
@@ -96,8 +118,7 @@ function addNewProduct() { //   * If a manager selects `Add New Product`, it sho
   })
 };
 
-function viewProductsForSale() {
-  //   * If a manager selects `View Products for Sale`, the app should list every available item: the item IDs, names, prices, and quantities.
+function viewProductsForSale() { //   * If a manager selects `View Products for Sale`, the app should list every available item: the item IDs, names, prices, and quantities.
   readProducts();
 };
 
@@ -111,28 +132,6 @@ var enterUnits = { // Inquirer object to get a Qty number
     } else { return true };
   }
 }
-
-var connection = mysql.createConnection({
-  host: "localhost",
-
-  // Your port; if not 3306
-  port: 3306,
-
-  // Your username
-  user: "root",
-
-  // Your password
-  password: "",
-  database: "bamazon_db"
-});
-
-function toTitleCase(str) { // INPUT: STRING  -  OUTPUT: SAME STRING IN TITLE CASE
-  str = str.toLowerCase().split(' ');
-  for (var i = 0; i < str.length; i++) {
-    str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
-  }
-  return str.join(' ');
-};
 
 function proceedTransaction(id, qty) { // INPUTS: ID AND QTY  -  OUTPUT: REASSIGN GLOABLE VARS AND CALL QUANTITYCHECK()
   if (id !== null) { productSelectionID = id; }
@@ -161,7 +160,7 @@ function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG 
   console.log(table.toString());
 };
 
-function updateProduct(id, qty) {
+function updateProduct(id, qty) { //INPUT: SQL QUERY RETURN - OUTPUT: UPDATE STOCK AND PRODUCT SALES ANDBACK TO START
   console.log("update fires -  id: " + id + "  qty: " + qty);
 
   connection.query(
@@ -216,7 +215,6 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
   })
 };
 
-///// INQUIRER FUNCTIONS
 function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
   console.log("\n----------------------------------------\n");
   inquirer.prompt([
@@ -252,6 +250,3 @@ function managerInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SE
 };
 
 managerInquiry();
-// ANY IMPROVEMENTS TO UX?
-// https://www.npmjs.com/package/cli-table
-

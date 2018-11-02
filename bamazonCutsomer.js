@@ -1,9 +1,10 @@
-
+// REQUIRE NPMS
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var colors = require('colors/safe');
 var Table = require('cli-table');
 
+// SET COLOR THEMES FOR CONSOLE LOGS
 colors.setTheme({
   inventory: ['yellow'],
   prompt: ['cyan', 'bold'],
@@ -12,6 +13,7 @@ colors.setTheme({
   info: ['red']
 });
 
+// DEFINE GLOABAL VARIABLES TO SIMPLIFY SCOPE ISSUES
 var productSelectionID;
 var productSelectionQty;
 
@@ -74,7 +76,7 @@ function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG 
   console.log(table.toString());
 };
 
-function updateProduct(id, qty, tranTotal) {
+function updateProduct(id, qty, tranTotal) { //INPUT: SQL QUERY RETURN - OUTPUT: UPDATE STOCK AND PRODUCT SALES ANDBACK TO START
   var query = connection.query(
     "UPDATE products SET ? WHERE ?",
     [
@@ -125,7 +127,6 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
   })
 };
 
-///// INQUIRER FUNCTIONS
 function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
   inquirer.prompt([
     {
