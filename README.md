@@ -1,6 +1,10 @@
 # Bamazon
 A retail shopping cart app built using Node.js and MySQL
 
+![bamazon_customer](https://user-images.githubusercontent.com/17099707/47896283-ff1e4780-de29-11e8-9ddd-9c5b9e77c5af.gif)
+![bamazon supervisor](https://user-images.githubusercontent.com/17099707/47896284-ffb6de00-de29-11e8-8838-9f5649919b8e.gif)
+![bamazon manager](https://user-images.githubusercontent.com/17099707/47896285-ffb6de00-de29-11e8-920c-0e7762fd5ac9.gif)
+
 # Node.js & MySQL
 
 ## Overview
