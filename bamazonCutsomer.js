@@ -2,6 +2,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var colors = require('colors/safe');
+var Table = require('cli-table');
 
 colors.setTheme({
   inventory: ['yellow'],
@@ -61,17 +62,16 @@ function readProducts() { // INPUT: NONE  -  OUTPUT: ALL PRODUCT TABLE CONTENTS
 };
 
 function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG OF ITEM DETAILS
+  var table = new Table({
+    head: ['Product ID', 'Product', 'Department', 'Price', 'Qty', 'Product Sales'],
+    colWidths: [10, 20, 25, 15, 10, 18]
+  });
   res.forEach((item) => {
-    console.log(colors.inventory(
-      "\n-------------\n" +
-      toTitleCase(item.product_name) + " - Product ID: " + item.id + "\n" +
-      "Department: " + toTitleCase(item.department_name) + "\n" +
-      "Price: $" + item.price + "\n" +
-      "Qty. In Stock: " + item.stock_quantity + "\n" +
-      "Total Product Sales: " + item.product_sales + 
-      "\n--------------"
-    ));
+    table.push(
+      [item.id, item.product_name, item.department_name, "$" + item.price, item.stock_quantity, "$" + item.product_sales]
+    )
   })
+  console.log(table.toString());
 };
 
 function updateProduct(id, qty, tranTotal) {
@@ -127,7 +127,6 @@ function quantityCheck(id, qty) { // INPUT: ID AND QTY  -  OUTPUT: CHOOSE NEW QT
 
 ///// INQUIRER FUNCTIONS
 function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: SERT GLOBAL VARS AND CALL PROCEEDTRANSACTION()
-  readProducts();
   inquirer.prompt([
     {
       name: "enter_id",
@@ -142,7 +141,9 @@ function purchaseInquiry() { // INPUTS: USER CHOICES FROM PROMPTS  -  OUTPUTS: S
   })
 };
 
-purchaseInquiry();
+readProducts();
+setTimeout(purchaseInquiry, 1000);
+
 
 // Build promise using https://flaviocopes.com/javascript-promises/
 // retunr to menu top UX

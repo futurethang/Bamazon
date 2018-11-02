@@ -11,11 +11,6 @@ colors.setTheme({
   info: ['red']
 });
 
-// var table = new Table({
-//     head: ['TH 1 label', 'TH 2 label']
-//   , colWidths: [100, 200]
-// });
-
 var productSelectionID;
 var productSelectionQty;
 
@@ -47,18 +42,25 @@ function printDepartment(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY L
     colWidths: [10, 40, 20, 20, 20]
   });
   res.forEach((item) => {
+    var total_profit = parseFloat(item['SUM(products.product_sales)'] - item.overhead_costs);
     table.push(
-      [item.department_id, item.department_name, item.overhead_costs, item.product_sales, item.total_profit]
+      [item.department_id, item.department_name, "$" + item.overhead_costs, "$"+item['SUM(products.product_sales)'], "$"+total_profit]
     )
   })
   console.log(table.toString());
 };
 
 function viewProductsSalesByDepartment() {
-  connection.query("SELECT * FROM departments", function (err, res) {
+  var queryString = "SELECT departments.department_id, departments.department_name, departments.overhead_costs, " +
+    "SUM(products.product_sales)\n" + 
+    "FROM departments\n" +
+    "INNER JOIN products ON departments.department_name=products.department_name\n" +
+    "GROUP BY departments.department_id, departments.department_name, departments.overhead_costs;"
+  connection.query(queryString, function (err, res) {
     if (err) throw err;
     console.log(res);
     printDepartment(res);
+    setTimeout(supervisorInquiry, 1000);
   })
 };
 

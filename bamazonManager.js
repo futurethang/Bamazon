@@ -2,6 +2,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var colors = require('colors/safe');
+var Table = require('cli-table');
 
 colors.setTheme({
   inventory: ['yellow'],
@@ -148,16 +149,16 @@ function readProducts() { // INPUT: NONE  -  OUTPUT: ALL PRODUCT TABLE CONTENTS
 };
 
 function printProduct(res) { // INPUT: SQL QUERY RETURN  -  OUTPUT: DISPLAY LOG OF ITEM DETAILS
+  var table = new Table({
+    head: ['Product ID', 'Product', 'Department', 'Price', 'Qty', 'Product Sales'],
+    colWidths: [12, 20, 25, 15, 10, 18]
+  });
   res.forEach((item) => {
-    console.log(colors.inventory(
-      "\n-------------\n" +
-      toTitleCase(item.product_name) + " - Product ID: " + item.id + "\n" +
-      "Department: " + toTitleCase(item.department_name) + "\n" +
-      "Price: $" + item.price + "\n" +
-      "Qty. In Stock: " + item.stock_quantity +
-      "\n--------------"
-    ));
+    table.push(
+      [item.id, item.product_name, item.department_name, "$" + item.price, item.stock_quantity, "$" + item.product_sales]
+    )
   })
+  console.log(table.toString());
 };
 
 function updateProduct(id, qty) {
